@@ -125,6 +125,149 @@
 
         // Le reste du code JavaScript reste le même...
         // Assurez-vous de supprimer toutes les lignes contenant log() ou console.log()
+
+        //AJOUTER PAR ROM
+// Get a reference to the database service
+        const database = firebase.database();
+ 
+        // Référence à la liste de courses dans la base de données
+        const listeRef = database.ref('liste_courses');
+ 
+        const listeCourses = document.getElementById('liste-courses');
+        const nouveauProduit = document.getElementById('nouveau-produit');
+        const ajouter = document.getElementById('ajouter');
+        const suggestions = document.getElementById('suggestions');
+        const compteur = document.getElementById('compteur');
+        const boutonTrier = document.getElementById('trier');
+        const boutonModeSombre = document.getElementById('mode-sombre');
+        const boutonViderListe = document.getElementById('vider-liste');
+        const boutonPartager = document.getElementById('partager');
+ 
+        let produits = [];
+        let triCroissant = true;
+ 
+        function afficherListe() {
+            listeCourses.innerHTML = '';
+            let produitsNonAchetes = produits.filter(p => !p.achete);
+            let produitsAchetes = produits.filter(p => p.achete);
+            [...produitsNonAchetes, ...produitsAchetes].forEach((produit, index) => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span class="${produit.achete ? 'barre' : ''} ${produit.important ? 'prioritaire' : ''}">${produit.nom}</span>
+                    <div>
+                        <button class="${produit.achete ? 'annuler' : 'achete'}" onclick="toggleAchete('${produit.id}')">
+                            ${produit.achete ? 'Annuler' : 'Acheté'}
+                        </button>
+                        <button class="important" onclick="toggleImportant('${produit.id}')">
+                            ${produit.important ? 'Normal' : 'Important'}
+                        </button>
+                        <button class="supprimer" onclick="supprimerProduit('${produit.id}')">Supprimer</button>
+                    </div>
+                `;
+                li.ondblclick = () => editerProduit(produit.id);
+                listeCourses.appendChild(li);
+            });
+            mettreAJourCompteur();
+        }
+ 
+        function ajouterProduit() {
+            const nom = nouveauProduit.value.trim();
+            if (nom) {
+                const newProduitRef = listeRef.push();
+                newProduitRef.set({
+                    nom: nom,
+                    achete: false,
+                    important: false
+                });
+                nouveauProduit.value = '';
+            }
+        }
+ 
+        function toggleAchete(id) {
+            const produit = produits.find(p => p.id === id);
+            if (produit) {
+                listeRef.child(id).update({ achete: !produit.achete });
+            }
+        }
+ 
+        function toggleImportant(id) {
+            const produit = produits.find(p => p.id === id);
+            if (produit) {
+                listeRef.child(id).update({ important: !produit.important });
+            }
+        }
+ 
+        function supprimerProduit(id) {
+            listeRef.child(id).remove();
+        }
+ 
+        function editerProduit(id) {
+            const produit = produits.find(p => p.id === id);
+            if (produit) {
+                const nouveauNom = prompt("Modifier le nom du produit", produit.nom);
+                if (nouveauNom !== null && nouveauNom.trim() !== "") {
+                    listeRef.child(id).update({ nom: nouveauNom.trim() });
+                }
+            }
+        }
+ 
+        function mettreAJourCompteur() {
+            const total = produits.length;
+            const achetes = produits.filter(p => p.achete).length;
+            compteur.textContent = `Articles : ${achetes}/${total}`;
+        }
+ 
+        function trierListe() {
+            produits.sort((a, b) => {
+                if (a.important !== b.important) return b.important - a.important;
+                return triCroissant ? a.nom.localeCompare(b.nom) : b.nom.localeCompare(a.nom);
+            });
+            triCroissant = !triCroissant;
+            afficherListe();
+        }
+ 
+        function toggleModeSombre() {
+            document.body.classList.toggle('dark-mode');
+        }
+ 
+        function viderListe() {
+            if (confirm("Êtes-vous sûr de vouloir vider la liste ?")) {
+                listeRef.remove();
+            }
+        }
+ 
+        function partagerListe() {
+            // Cette fonction reste à implémenter pour la gestion du partage
+            alert("Fonctionnalité de partage à implémenter");
+        }
+ 
+        // Écouter les changements dans la base de données
+        listeRef.on('value', (snapshot) => {
+            produits = [];
+            snapshot.forEach((childSnapshot) => {
+                produits.push({
+                    id: childSnapshot.key,
+                    ...childSnapshot.val()
+                });
+            });
+            afficherListe();
+        });
+ 
+        ajouter.addEventListener('click', ajouterProduit);
+        nouveauProduit.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                ajouterProduit();
+            }
+        });
+        boutonTrier.addEventListener('click', trierListe);
+        boutonModeSombre.addEventListener('click', toggleModeSombre);
+        boutonViderListe.addEventListener('click', viderListe);
+        boutonPartager.addEventListener('click', partagerListe);
+
+// FIN ROM
+        
+
+
     </script>
 </body>
 </html>
