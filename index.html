@@ -82,6 +82,14 @@
             margin: 10px 0;
             font-weight: bold;
         }
+        body.dark-mode {
+            background-color: #333;
+            color: #fff;
+        }
+        body.dark-mode #liste-courses li {
+            background-color: #444;
+            color: #fff;
+        }
     </style>
 </head>
 <body>
@@ -106,9 +114,6 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script>
-        // Le reste du code JavaScript reste inchangé, 
-        // mais supprimez toutes les fonctions log() et les appels à log()
-        
         const firebaseConfig = {
           apiKey: "AIzaSyC_HHATirJec1xCo79sUpPiBDRTlfDOhyY",
           authDomain: "ma-liste-de-courses-3df96.firebaseapp.com",
@@ -123,34 +128,23 @@
         const database = firebase.database();
         const listeRef = database.ref('liste_courses');
 
-        // Le reste du code JavaScript reste le même...
-        // Assurez-vous de supprimer toutes les lignes contenant log() ou console.log()
-
-        //AJOUTER PAR ROM
-// Get a reference to the database service
-        const database = firebase.database();
- 
-        // Référence à la liste de courses dans la base de données
-        const listeRef = database.ref('liste_courses');
- 
         const listeCourses = document.getElementById('liste-courses');
         const nouveauProduit = document.getElementById('nouveau-produit');
         const ajouter = document.getElementById('ajouter');
-        const suggestions = document.getElementById('suggestions');
         const compteur = document.getElementById('compteur');
         const boutonTrier = document.getElementById('trier');
         const boutonModeSombre = document.getElementById('mode-sombre');
         const boutonViderListe = document.getElementById('vider-liste');
-        const boutonPartager = document.getElementById('partager');
- 
+
         let produits = [];
         let triCroissant = true;
- 
+
         function afficherListe() {
+            console.log('Affichage de la liste, nombre de produits:', produits.length);
             listeCourses.innerHTML = '';
             let produitsNonAchetes = produits.filter(p => !p.achete);
             let produitsAchetes = produits.filter(p => p.achete);
-            [...produitsNonAchetes, ...produitsAchetes].forEach((produit, index) => {
+            [...produitsNonAchetes, ...produitsAchetes].forEach((produit) => {
                 const li = document.createElement('li');
                 li.innerHTML = `
                     <span class="${produit.achete ? 'barre' : ''} ${produit.important ? 'prioritaire' : ''}">${produit.nom}</span>
@@ -169,12 +163,11 @@
             });
             mettreAJourCompteur();
         }
- 
+
         function ajouterProduit() {
             const nom = nouveauProduit.value.trim();
             if (nom) {
-                const newProduitRef = listeRef.push();
-                newProduitRef.set({
+                listeRef.push().set({
                     nom: nom,
                     achete: false,
                     important: false
@@ -182,25 +175,25 @@
                 nouveauProduit.value = '';
             }
         }
- 
+
         function toggleAchete(id) {
             const produit = produits.find(p => p.id === id);
             if (produit) {
                 listeRef.child(id).update({ achete: !produit.achete });
             }
         }
- 
+
         function toggleImportant(id) {
             const produit = produits.find(p => p.id === id);
             if (produit) {
                 listeRef.child(id).update({ important: !produit.important });
             }
         }
- 
+
         function supprimerProduit(id) {
             listeRef.child(id).remove();
         }
- 
+
         function editerProduit(id) {
             const produit = produits.find(p => p.id === id);
             if (produit) {
@@ -210,13 +203,13 @@
                 }
             }
         }
- 
+
         function mettreAJourCompteur() {
             const total = produits.length;
             const achetes = produits.filter(p => p.achete).length;
             compteur.textContent = `Articles : ${achetes}/${total}`;
         }
- 
+
         function trierListe() {
             produits.sort((a, b) => {
                 if (a.important !== b.important) return b.important - a.important;
@@ -225,24 +218,19 @@
             triCroissant = !triCroissant;
             afficherListe();
         }
- 
+
         function toggleModeSombre() {
             document.body.classList.toggle('dark-mode');
         }
- 
+
         function viderListe() {
             if (confirm("Êtes-vous sûr de vouloir vider la liste ?")) {
                 listeRef.remove();
             }
         }
- 
-        function partagerListe() {
-            // Cette fonction reste à implémenter pour la gestion du partage
-            alert("Fonctionnalité de partage à implémenter");
-        }
- 
-        // Écouter les changements dans la base de données
+
         listeRef.on('value', (snapshot) => {
+            console.log('Données reçues de Firebase');
             produits = [];
             snapshot.forEach((childSnapshot) => {
                 produits.push({
@@ -250,9 +238,12 @@
                     ...childSnapshot.val()
                 });
             });
+            console.log('Produits récupérés:', produits);
             afficherListe();
+        }, (error) => {
+            console.error('Erreur lors de la lecture des données:', error);
         });
- 
+
         ajouter.addEventListener('click', ajouterProduit);
         nouveauProduit.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
@@ -262,12 +253,6 @@
         boutonTrier.addEventListener('click', trierListe);
         boutonModeSombre.addEventListener('click', toggleModeSombre);
         boutonViderListe.addEventListener('click', viderListe);
-        boutonPartager.addEventListener('click', partagerListe);
-
-// FIN ROM
-        
-
-
     </script>
 </body>
 </html>
