@@ -10,6 +10,7 @@
             max-width: 600px;
             margin: 0 auto;
             padding: 20px;
+            color: #000;
         }
         .header {
             text-align: center;
@@ -35,18 +36,20 @@
             align-items: center;
             padding: 10px;
             border-bottom: 1px solid #ddd;
+            color: #000;
         }
-        .achete { background-color: #4CAF50; }
-        .annuler { background-color: #ff4d4d; }
-        .important { background-color: #A01B03; }
-        .supprimer { background-color: #262626; }
         button {
-            color: white;
             border: none;
             padding: 5px 10px;
             cursor: pointer;
             margin-left: 5px;
+            color: #000;
+            background-color: #f0f0f0;
         }
+        .achete { background-color: #4CAF50; }
+        .annuler { background-color: #ff4d4d; }
+        .important { background-color: #A01B03; }
+        .supprimer { background-color: #262626; color: #fff; }
         .barre { text-decoration: line-through; color: #888; }
         .prioritaire { font-weight: bold; color: #A01B03; }
         #actions { margin-top: 20px; text-align: center; }
@@ -56,6 +59,8 @@
             color: #fff;
         }
         .dark-mode .logo .courses { color: #ddd; }
+        .dark-mode #liste-courses li { color: #fff; }
+        .dark-mode button { background-color: #555; color: #fff; }
     </style>
 </head>
 <body>
@@ -106,6 +111,7 @@
         let triCroissant = true;
 
         function afficherListe() {
+            console.log("Affichage de la liste", produits);
             listeCourses.innerHTML = '';
             let produitsNonAchetes = produits.filter(p => !p.achete);
             let produitsAchetes = produits.filter(p => p.achete);
@@ -132,6 +138,7 @@
         function ajouterProduit() {
             const nom = nouveauProduit.value.trim();
             if (nom) {
+                console.log("Ajout d'un produit", nom);
                 listeRef.push().set({
                     nom: nom,
                     achete: false,
@@ -144,6 +151,7 @@
         function toggleAchete(id) {
             const produit = produits.find(p => p.id === id);
             if (produit) {
+                console.log("Toggle acheté", id, !produit.achete);
                 listeRef.child(id).update({ achete: !produit.achete });
             }
         }
@@ -151,11 +159,13 @@
         function toggleImportant(id) {
             const produit = produits.find(p => p.id === id);
             if (produit) {
+                console.log("Toggle important", id, !produit.important);
                 listeRef.child(id).update({ important: !produit.important });
             }
         }
 
         function supprimerProduit(id) {
+            console.log("Suppression produit", id);
             listeRef.child(id).remove();
         }
 
@@ -164,6 +174,7 @@
             if (produit) {
                 const nouveauNom = prompt("Modifier le nom du produit", produit.nom);
                 if (nouveauNom !== null && nouveauNom.trim() !== "") {
+                    console.log("Édition produit", id, nouveauNom);
                     listeRef.child(id).update({ nom: nouveauNom.trim() });
                 }
             }
@@ -190,11 +201,13 @@
 
         function viderListe() {
             if (confirm("Êtes-vous sûr de vouloir vider la liste ?")) {
+                console.log("Vidage de la liste");
                 listeRef.remove();
             }
         }
 
         listeRef.on('value', (snapshot) => {
+            console.log("Mise à jour de la base de données");
             produits = [];
             snapshot.forEach((childSnapshot) => {
                 produits.push({
@@ -202,6 +215,7 @@
                     ...childSnapshot.val()
                 });
             });
+            console.log("Nouveaux produits", produits);
             afficherListe();
         });
 
