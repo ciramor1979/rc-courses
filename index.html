@@ -3,14 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RC Courses - Test</title>
+    <title>RC Courses - Liste de courses</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
+        #liste-courses { list-style-type: none; padding: 0; }
+        #liste-courses li { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #ddd; }
+        button { cursor: pointer; }
+    </style>
 </head>
 <body>
     <h1>RC Courses</h1>
-    <p>Si vous voyez ce message, le HTML fonctionne correctement.</p>
-    
+    <div>
+        <input type="text" id="nouveau-produit" placeholder="Ajouter un produit">
+        <button id="ajouter">Ajouter</button>
+    </div>
+    <ul id="liste-courses"></ul>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script>
-        document.body.innerHTML += "<p>Si vous voyez ce message, JavaScript fonctionne aussi.</p>";
+        const firebaseConfig = {
+          apiKey: "AIzaSyC_HHATirJec1xCo79sUpPiBDRTlfDOhyY",
+          authDomain: "ma-liste-de-courses-3df96.firebaseapp.com",
+          databaseURL: "https://ma-liste-de-courses-3df96-default-rtdb.europe-west1.firebasedatabase.app",
+          projectId: "ma-liste-de-courses-3df96",
+          storageBucket: "ma-liste-de-courses-3df96.appspot.com",
+          messagingSenderId: "237417998673",
+          appId: "1:237417998673:web:9344c936da414bdd848b70"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const listeRef = database.ref('liste_courses');
+
+        const listeCourses = document.getElementById('liste-courses');
+        const nouveauProduit = document.getElementById('nouveau-produit');
+        const ajouter = document.getElementById('ajouter');
+
+        function afficherListe(produits) {
+            listeCourses.innerHTML = '';
+            produits.forEach((produit) => {
+                const li = document.createElement('li');
+                li.textContent = produit.nom;
+                const supprimerBtn = document.createElement('button');
+                supprimerBtn.textContent = 'Supprimer';
+                supprimerBtn.onclick = () => supprimerProduit(produit.id);
+                li.appendChild(supprimerBtn);
+                listeCourses.appendChild(li);
+            });
+        }
+
+        function ajouterProduit() {
+            const nom = nouveauProduit.value.trim();
+            if (nom) {
+                listeRef.push().set({ nom: nom });
+                nouveauProduit.value = '';
+            }
+        }
+
+        function supprimerProduit(id) {
+            listeRef.child(id).remove();
+        }
+
+        listeRef.on('value', (snapshot) => {
+            const produits = [];
+            snapshot.forEach((childSnapshot) => {
+                produits.push({
+                    id: childSnapshot.key,
+                    ...childSnapshot.val()
+                });
+            });
+            afficherListe(produits);
+        });
+
+        ajouter.addEventListener('click', ajouterProduit);
+        nouveauProduit.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                ajouterProduit();
+            }
+        });
     </script>
 </body>
 </html>
